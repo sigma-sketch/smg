@@ -1,0 +1,2790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Clicker</title>
+    <style>
+        :root {
+            --primary-color: #3a1c71;
+            --secondary-color: #d76d77;
+            --tertiary-color: #ffaf7b;
+            --dark-bg: #1a1a2e;
+            --medium-bg: #16213e;
+            --light-bg: #0f3460;
+            --text-color: #e7e7e7;
+            --upgrade-available: #4caf50;
+            --upgrade-unavailable: #607d8b;
+            --prestigious-color: #ffd700;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: var(--dark-bg);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .game-container {
+            display: flex;
+            flex: 1;
+            flex-wrap: wrap;
+            padding: 1rem;
+            gap: 1rem;
+        }
+
+        .main-section {
+            flex: 2;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 1rem;
+            background: var(--medium-bg);
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .resources {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            background: var(--light-bg);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .resource {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.2rem;
+        }
+
+        .clicker-area {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--secondary-color), var(--tertiary-color));
+            box-shadow: 0 0 20px rgba(215, 109, 119, 0.5);
+            transition: transform 0.1s;
+        }
+
+        .clicker-inner {
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--tertiary-color) 0%, var(--secondary-color) 70%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+
+        .clicker-area.active {
+            transform: scale(0.95);
+        }
+
+        .click-particle {
+            position: absolute;
+            pointer-events: none;
+            font-weight: bold;
+            opacity: 0;
+            animation: float-up 1s ease-out;
+        }
+
+        @keyframes float-up {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px);
+            }
+        }
+
+        .stats-section {
+            width: 100%;
+            background: var(--light-bg);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .stat-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+
+        .upgrades-section {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            background: var(--medium-bg);
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            overflow-y: auto;
+            max-height: 80vh;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+        }
+
+        .tab-button {
+            background: var(--light-bg);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: background-color 0.3s;
+            white-space: nowrap;
+        }
+
+        .tab-button.active {
+            background: var(--secondary-color);
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        .upgrade-item {
+            background: var(--light-bg);
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upgrade-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .upgrade-item.unavailable {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .upgrade-item.purchased {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+        }
+
+        .upgrade-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .upgrade-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .upgrade-cost {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.3rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .upgrade-description {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .upgrade-effect {
+            font-size: 0.9rem;
+            color: var(--upgrade-available);
+        }
+
+        .upgrade-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background: var(--upgrade-available);
+            transition: width 0.3s;
+        }
+
+        .upgrade-level {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .generator-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--light-bg);
+            border-radius: 8px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .generator-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .generator-item.unavailable {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .generator-info {
+            flex: 1;
+        }
+
+        .generator-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .generator-name {
+            font-weight: bold;
+        }
+
+        .generator-count {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .generator-effect {
+            font-size: 0.9rem;
+            color: var(--upgrade-available);
+        }
+
+        .generator-cost {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.3rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        .achievements-section {
+            background: var(--light-bg);
+            border-radius: 8px;
+            padding: 1rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .achievement {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 0.5rem;
+            text-align: center;
+            position: relative;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+        }
+
+        .achievement.unlocked {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+        }
+
+        .achievement-icon {
+            font-size: 1.5rem;
+        }
+
+        .achievement-name {
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .achievement-desc {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .locked-achievement .achievement-name,
+        .locked-achievement .achievement-desc {
+            filter: blur(4px);
+        }
+
+        .prestige-section {
+            width: 100%;
+            background: var(--light-bg);
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .prestige-info {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .prestige-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--prestigious-color);
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+        }
+
+        .prestige-button {
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            border: none;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .prestige-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .prestige-button:disabled {
+            background: var(--upgrade-unavailable);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            opacity: 0.7;
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 1rem;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            transform: translateX(120%);
+            transition: transform 0.3s ease-out;
+            max-width: 300px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .control-button {
+            background: var(--light-bg);
+            border: none;
+            color: var(--text-color);
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .control-button:hover {
+            background: var(--secondary-color);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--medium-bg);
+            border-radius: 10px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .settings-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                flex-direction: column;
+            }
+            
+            .upgrades-section {
+                max-height: none;
+            }
+            
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .spin-anim {
+            animation: spin 20s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .pulse-anim {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Progress bar for the loading screen */
+        .load-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--dark-bg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        
+        .load-progress {
+            width: 80%;
+            max-width: 400px;
+            height: 20px;
+            background: var(--light-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 2rem;
+        }
+        
+        .load-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            transition: width 0.5s;
+        }
+        
+        .load-text {
+            margin-top: 1rem;
+            font-size: 1.2rem;
+        }
+        
+        /* Challenge mode styling */
+        .challenge-card {
+            background: var(--light-bg);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: 2px solid transparent;
+        }
+        
+        .challenge-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .challenge-card.active {
+            border-color: var(--secondary-color);
+        }
+        
+        .challenge-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .challenge-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .challenge-status {
+            font-size: 0.8rem;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        .challenge-description {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .challenge-reward {
+            font-size: 0.9rem;
+            color: var(--prestigious-color);
+        }
+
+        /* Time mechanics section */
+        .time-warp {
+            background: linear-gradient(45deg, #9c27b0, #2196f3);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 1rem;
+        }
+        
+        .time-warp-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: background-color 0.3s;
+        }
+        
+        .time-warp-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Story elements */
+        .story-panel {
+            background: var(--light-bg);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            border-left: 4px solid var(--tertiary-color);
+        }
+        
+        .story-title {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="load-container" id="loadScreen">
+        <h1>Cosmic Clicker</h1>
+        <div class="load-progress">
+            <div class="load-bar" id="loadBar"></div>
+        </div>
+        <div class="load-text" id="loadText">Loading universe...</div>
+    </div>
+
+    <div class="stars" id="stars"></div>
+
+    <header>
+        <h1>Cosmic Clicker</h1>
+    </header>
+
+    <div class="game-container">
+        <div class="main-section">
+            <div class="resources">
+                <div class="resource">
+                    <span>Energy:</span>
+                    <span id="energyCounter">0</span>
+                </div>
+                <div class="resource">
+                    <span>Energy per second:</span>
+                    <span id="epsCounter">0</span>
+                </div>
+                <div class="resource" id="prestigePointsContainer" style="display: none;">
+                    <span>Cosmic Essence:</span>
+                    <span id="prestigeCounter">0</span>
+                </div>
+                <div class="resource" id="stardustContainer" style="display: none;">
+                    <span>Stardust:</span>
+                    <span id="stardustCounter">0</span>
+                </div>
+            </div>
+
+            <div class="clicker-area" id="clicker">
+                <div class="clicker-inner" id="clickerInner">CLICK</div>
+            </div>
+
+            <div class="stats-section">
+                <h3>Stats</h3>
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-item">
+                        <div>Total Clicks</div>
+                        <div id="totalClicksStat">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div>Energy per Click</div>
+                        <div id="energyPerClickStat">1</div>
+                    </div>
+                    <div class="stat-item">
+                        <div>Play Time</div>
+                        <div id="playTimeStat">00:00:00</div>
+                    </div>
+                    <div class="stat-item">
+                        <div>Total Energy</div>
+                        <div id="totalEnergyStat">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="prestige-section" id="prestigeSection" style="display: none;">
+                <div class="prestige-info">
+                    <p>Reset your progress to gain</p>
+                    <div class="prestige-value" id="prestigeGain">+0 Cosmic Essence</div>
+                    <p>Current bonus: x<span id="prestigeBonus">1.00</span></p>
+                </div>
+                <button class="prestige-button" id="prestigeButton" disabled>ASCEND</button>
+            </div>
+
+            <div class="controls">
+                <button class="control-button" id="settingsButton">Settings</button>
+                <button class="control-button" id="statsButton">Statistics</button>
+                <button class="control-button" id="achievementsButton">Achievements</button>
+            </div>
+        </div>
+
+        <div class="upgrades-section">
+            <div class="tab-buttons" id="tabButtons">
+                <button class="tab-button active" data-tab="generators">Generators</button>
+                <button class="tab-button" data-tab="upgrades">Upgrades</button>
+                <button class="tab-button" id="prestigeTabButton" style="display: none;" data-tab="prestige">Cosmic</button>
+                <button class="tab-button" id="challengesTabButton" style="display: none;" data-tab="challenges">Challenges</button>
+                <button class="tab-button" id="timeTabButton" style="display: none;" data-tab="time">Time</button>
+            </div>
+
+            <div class="tab-content active" id="generatorsTab">
+                <div id="generatorsList"></div>
+            </div>
+
+            <div class="tab-content" id="upgradesTab">
+                <div id="upgradesList"></div>
+            </div>
+
+            <div class="tab-content" id="prestigeTab">
+                <div id="prestigeUpgradesList"></div>
+            </div>
+
+            <div class="tab-content" id="challengesTab">
+                <div id="challengesList"></div>
+            </div>
+
+            <div class="tab-content" id="timeTab">
+                <div class="time-warp" id="timeWarp">
+                    <h3>Time Warp</h3>
+                    <p>Fast-forward your production for <span id="timeWarpDuration">30</span> seconds</p>
+                    <p>Cost: <span id="timeWarpCost">100</span> Stardust</p>
+                    <button class="time-warp-button" id="timeWarpButton">WARP TIME</button>
+                </div>
+                <div id="timeUpgradesList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div class="notification" id="notification"></div>
+
+    <!-- Modals -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <button class="modal-close" id="closeSettingsModal">×</button>
+            <h2>Settings</h2>
+            <div class="settings-grid">
+                <div class="settings-item">
+                    <input type="checkbox" id="particleEffects" checked>
+                    <label for="particleEffects">Particle Effects</label>
+                </div>
+                <div class="settings-item">
+                    <input type="checkbox" id="animations" checked>
+                    <label for="animations">Animations</label>
+                </div>
+                <div class="settings-item">
+                    <input type="checkbox" id="notifications" checked>
+                    <label for="notifications">Notifications</label>
+                </div>
+                <div class="settings-item">
+                    <input type="checkbox" id="autosave" checked>
+                    <label for="autosave">Autosave</label>
+                </div>
+            </div>
+            <div style="margin-top: 1rem;">
+                <button class="control-button" id="exportSave">Export Save</button>
+                <button class="control-button" id="importSave">Import Save</button>
+                <button class="control-button" id="resetGame">Reset Game</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="statsModal">
+        <div class="modal-content">
+            <button class="modal-close" id="closeStatsModal">×</button>
+            <h2>Statistics</h2>
+            <div id="detailedStats" style="margin-top: 1rem;"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="achievementsModal">
+        <div class="modal-content">
+            <button class="modal-close" id="closeAchievementsModal">×</button>
+            <h2>Achievements</h2>
+            <div class="achievements-section" id="achievementsList"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="confirmResetModal">
+        <div class="modal-content">
+            <h2>Reset Game</h2>
+            <p>Are you sure you want to reset the game? All progress will be lost.</p>
+            <div style="display: flex; justify-content: space-between; margin-top: 1rem;">
+                <button class="control-button" id="cancelReset">Cancel</button>
+                <button class="control-button" id="confirmReset">Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="importModal">
+        <div class="modal-content">
+            <button class="modal-close" id="closeImportModal">×</button>
+            <h2>Import Save</h2>
+            <p>Paste your save code below:</p>
+            <textarea id="importCode" style="width: 100%; height: 100px; margin: 1rem 0; background: var(--light-bg); color: var(--text-color); border: none; padding: 0.5rem; border-radius: 5px;"></textarea>
+            <button class="control-button" id="doImport">Import</button>
+        </div>
+    </div>
+
+    <div class="modal" id="exportModal">
+        <div class="modal-content">
+            <button class="modal-close" id="closeExportModal">×</button>
+            <h2>Export Save</h2>
+            <p>Copy the code below to save your game:</p>
+            <textarea id="exportCode" style="width: 100%; height: 100px; margin: 1rem 0; background: var(--light-bg); color: var(--text-color); border: none; padding: 0.5rem; border-radius: 5px;" readonly></textarea>
+            <button class="control-button" id="copyExport">Copy to Clipboard</button>
+        </div>
+    </div>
+
+    <div class="modal" id="storyModal">
+        <div class="modal-content">
+            <button class="modal-close" id="closeStoryModal">×</button>
+            <h2 id="storyTitle">Discovery</h2>
+            <div id="storyContent" style="margin: 1rem 0; line-height: 1.6;"></div>
+            <button class="control-button" id="continueStory">Continue</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let gameState = {
+            energy: 0,
+            energyPerSecond: 0,
+            energyPerClick: 1,
+            totalClicks: 0,
+            totalEnergy: 0,
+            playTime: 0,
+            clickMultiplier: 1,
+            productionMultiplier: 1,
+            prestigePoints: 0,
+            prestigeMultiplier: 1,
+            totalResets: 0,
+            stardust: 0,
+            stardustMultiplier: 1,
+            timeWarpLevel: 1,
+            lastSave: Date.now(),
+            lastUpdate: Date.now(),
+            lastStoryTrigger: 0,
+            unlockedFeatures: {
+                prestige: false,
+                challenges: false,
+                stardust: false,
+                timeMechanics: false
+            },
+            settings: {
+                particleEffects: true,
+                animations: true,
+                notifications: true,
+                autosave: true
+            },
+            activeChallenge: null,
+            completedChallenges: [],
+            challengeProgress: {},
+            discoveredUpgrades: [],
+            generators: [],
+            upgrades: [],
+            prestigeUpgrades: [],
+            timeUpgrades: [],
+            achievements: [],
+            statistics: {
+                highestEnergy: 0,
+                totalPrestiges: 0,
+                totalStardust: 0,
+                challengesCompleted: 0,
+                upgradesPurchased: 0,
+                generatorsBought: 0,
+                timeWarps: 0
+            },
+            storyProgress: 0,
+            storyRead: []
+        };
+
+        // Game configuration
+        const GAME_CONFIG = {
+            saveInterval: 60000, // 1 minute
+            prestigeRequirement: 1e6, // 1 million energy
+            stardustRequirement: 10, // 10 prestige points
+            timeMechanicsRequirement: 100, // 100 stardust
+            baseClickValue: 1,
+            basePrestigeFormula: energy => Math.floor(Math.sqrt(energy / 1e5)),
+            baseStardustFormula: prestigePoints => Math.floor(Math.sqrt(prestigePoints))
+        };
+
+        // Initialize DOM elements
+        const elements = {
+            energyCounter: document.getElementById('energyCounter'),
+            epsCounter: document.getElementById('epsCounter'),
+            prestigePointsContainer: document.getElementById('prestigePointsContainer'),
+            prestigeCounter: document.getElementById('prestigeCounter'),
+            stardustContainer: document.getElementById('stardustContainer'),
+            stardustCounter: document.getElementById('stardustCounter'),
+            clicker: document.getElementById('clicker'),
+            clickerInner: document.getElementById('clickerInner'),
+            statsGrid: document.getElementById('statsGrid'),
+            totalClicksStat: document.getElementById('totalClicksStat'),
+            energyPerClickStat: document.getElementById('energyPerClickStat'),
+            playTimeStat: document.getElementById('playTimeStat'),
+            totalEnergyStat: document.getElementById('totalEnergyStat'),
+            prestigeSection: document.getElementById('prestigeSection'),
+            prestigeGain: document.getElementById('prestigeGain'),
+            prestigeBonus: document.getElementById('prestigeBonus'),
+            prestigeButton: document.getElementById('prestigeButton'),
+            tabButtons: document.getElementById('tabButtons'),
+            generatorsList: document.getElementById('generatorsList'),
+            upgradesList: document.getElementById('upgradesList'),
+            prestigeUpgradesList: document.getElementById('prestigeUpgradesList'),
+            challengesList: document.getElementById('challengesList'),
+            timeUpgradesList: document.getElementById('timeUpgradesList'),
+            achievementsList: document.getElementById('achievementsList'),
+            notification: document.getElementById('notification'),
+            stars: document.getElementById('stars'),
+            settingsButton: document.getElementById('settingsButton'),
+            statsButton: document.getElementById('statsButton'),
+            achievementsButton: document.getElementById('achievementsButton'),
+            settingsModal: document.getElementById('settingsModal'),
+            statsModal: document.getElementById('statsModal'),
+            achievementsModal: document.getElementById('achievementsModal'),
+            confirmResetModal: document.getElementById('confirmResetModal'),
+            importModal: document.getElementById('importModal'),
+            exportModal: document.getElementById('exportModal'),
+            storyModal: document.getElementById('storyModal'),
+            closeSettingsModal: document.getElementById('closeSettingsModal'),
+            closeStatsModal: document.getElementById('closeStatsModal'),
+            closeAchievementsModal: document.getElementById('closeAchievementsModal'),
+            closeImportModal: document.getElementById('closeImportModal'),
+            closeExportModal: document.getElementById('closeExportModal'),
+            closeStoryModal: document.getElementById('closeStoryModal'),
+            detailedStats: document.getElementById('detailedStats'),
+            exportSave: document.getElementById('exportSave'),
+            importSave: document.getElementById('importSave'),
+            resetGame: document.getElementById('resetGame'),
+            cancelReset: document.getElementById('cancelReset'),
+            confirmReset: document.getElementById('confirmReset'),
+            exportCode: document.getElementById('exportCode'),
+            importCode: document.getElementById('importCode'),
+            copyExport: document.getElementById('copyExport'),
+            doImport: document.getElementById('doImport'),
+            particleEffects: document.getElementById('particleEffects'),
+            animations: document.getElementById('animations'),
+            notifications: document.getElementById('notifications'),
+            autosave: document.getElementById('autosave'),
+            prestigeTabButton: document.getElementById('prestigeTabButton'),
+            challengesTabButton: document.getElementById('challengesTabButton'),
+            timeTabButton: document.getElementById('timeTabButton'),
+            timeWarp: document.getElementById('timeWarp'),
+            timeWarpDuration: document.getElementById('timeWarpDuration'),
+            timeWarpCost: document.getElementById('timeWarpCost'),
+            timeWarpButton: document.getElementById('timeWarpButton'),
+            storyTitle: document.getElementById('storyTitle'),
+            storyContent: document.getElementById('storyContent'),
+            continueStory: document.getElementById('continueStory'),
+            loadScreen: document.getElementById('loadScreen'),
+            loadBar: document.getElementById('loadBar'),
+            loadText: document.getElementById('loadText')
+        };
+
+        // Format large numbers
+        function formatNumber(num) {
+            if (num < 1000) return num.toFixed(0);
+            
+            const prefixes = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc'];
+            const exp = Math.floor(Math.log10(num) / 3);
+            
+            if (exp >= prefixes.length) {
+                return num.toExponential(2);
+            }
+            
+            const prefix = prefixes[exp];
+            const divisor = Math.pow(10, exp * 3);
+            const scaled = num / divisor;
+            
+            return scaled.toFixed(2) + prefix;
+        }
+
+        // Format time
+        function formatTime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = Math.floor(seconds % 60);
+            
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Show notification
+        function showNotification(message, duration = 3000) {
+            if (!gameState.settings.notifications) return;
+            
+            elements.notification.textContent = message;
+            elements.notification.classList.add('show');
+            
+            setTimeout(() => {
+                elements.notification.classList.remove('show');
+            }, duration);
+        }
+
+        // Create particle effect on click
+        function createClickParticle(x, y, value) {
+            if (!gameState.settings.particleEffects) return;
+            
+            const particle = document.createElement('div');
+            particle.className = 'click-particle';
+            particle.textContent = `+${formatNumber(value)}`;
+            particle.style.left = `${x}px`;
+            particle.style.top = `${y}px`;
+            particle.style.color = `hsl(${Math.random() * 60 + 20}, 100%, 70%)`;
+            document.body.appendChild(particle);
+            
+            setTimeout(() => {
+                document.body.removeChild(particle);
+            }, 1000);
+        }
+
+        // Create star background
+        function createStars() {
+            elements.stars.innerHTML = '';
+            
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.style.position = 'absolute';
+                star.style.width = `${Math.random() * 2 + 1}px`;
+                star.style.height = star.style.width;
+                star.style.backgroundColor = `hsla(${Math.random() * 60 + 200}, ${Math.random() * 50 + 50}%, ${Math.random() * 30 + 70}%, ${Math.random() * 0.7 + 0.3})`;
+                star.style.borderRadius = '50%';
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                
+                if (Math.random() > 0.7 && gameState.settings.animations) {
+                    star.style.animation = `pulse ${Math.random() * 3 + 2}s infinite`;
+                }
+                
+                elements.stars.appendChild(star);
+            }
+        }
+
+        // Check for unlockables
+        function checkUnlocks() {
+            // Unlock prestige
+            if (gameState.energy >= GAME_CONFIG.prestigeRequirement && !gameState.unlockedFeatures.prestige) {
+                gameState.unlockedFeatures.prestige = true;
+                elements.prestigeSection.style.display = 'flex';
+                elements.prestigePointsContainer.style.display = 'flex';
+                elements.prestigeTabButton.style.display = 'block';
+                showNotification('Cosmic Ascension unlocked!');
+                triggerStory(1);
+            }
+            
+            // Unlock challenges
+            if (gameState.totalResets >= 3 && !gameState.unlockedFeatures.challenges) {
+                gameState.unlockedFeatures.challenges = true;
+                elements.challengesTabButton.style.display = 'block';
+                showNotification('Challenges unlocked!');
+                triggerStory(3);
+            }
+            
+            // Unlock stardust
+            if (gameState.prestigePoints >= GAME_CONFIG.stardustRequirement && !gameState.unlockedFeatures.stardust) {
+                gameState.unlockedFeatures.stardust = true;
+                elements.stardustContainer.style.display = 'flex';
+                showNotification('Stardust unlocked!');
+                triggerStory(4);
+            }
+            
+            // Unlock time mechanics
+            if (gameState.stardust >= GAME_CONFIG.timeMechanicsRequirement && !gameState.unlockedFeatures.timeMechanics) {
+                gameState.unlockedFeatures.timeMechanics = true;
+                elements.timeTabButton.style.display = 'block';
+                showNotification('Time Mechanics unlocked!');
+                triggerStory(6);
+            }
+        }
+
+        // Update UI
+        function updateUI() {
+            elements.energyCounter.textContent = formatNumber(gameState.energy);
+            elements.epsCounter.textContent = formatNumber(gameState.energyPerSecond);
+            elements.prestigeCounter.textContent = formatNumber(gameState.prestigePoints);
+            elements.stardustCounter.textContent = formatNumber(gameState.stardust);
+            
+            elements.totalClicksStat.textContent = formatNumber(gameState.totalClicks);
+            elements.energyPerClickStat.textContent = formatNumber(gameState.energyPerClick);
+            elements.playTimeStat.textContent = formatTime(gameState.playTime);
+            elements.totalEnergyStat.textContent = formatNumber(gameState.totalEnergy);
+            
+            updatePrestigeUI();
+        }
+
+        // Update prestige UI
+        function updatePrestigeUI() {
+            if (!gameState.unlockedFeatures.prestige) return;
+            
+            const prestigeGain = calculatePrestigeGain();
+            elements.prestigeGain.textContent = `+${prestigeGain} Cosmic Essence`;
+            elements.prestigeBonus.textContent = gameState.prestigeMultiplier.toFixed(2);
+            
+            if (prestigeGain > 0) {
+                elements.prestigeButton.disabled = false;
+            } else {
+                elements.prestigeButton.disabled = true;
+            }
+        }
+
+        // Calculate prestige gain
+        function calculatePrestigeGain() {
+            return GAME_CONFIG.basePrestigeFormula(gameState.energy);
+        }
+
+        // Calculate stardust gain
+        function calculateStardustGain() {
+            return GAME_CONFIG.baseStardustFormula(gameState.prestigePoints);
+        }
+
+        // Find upgrade by id
+        function findUpgradeById(id, list = 'upgrades') {
+            return gameState[list].find(upgrade => upgrade.id === id);
+        }
+
+        // Generate game data
+        function generateGameData() {
+            // Generate generators
+            gameState.generators = [
+                {
+                    id: 'gen1',
+                    name: 'Photon Collector',
+                    description: 'Collects ambient photons from space.',
+                    baseCost: 10,
+                    baseProduction: 0.1,
+                    count: 0,
+                    costMultiplier: 1.15,
+                    unlocked: true
+                },
+                {
+                    id: 'gen2',
+                    name: 'Quantum Extractor',
+                    description: 'Extracts energy from quantum fluctuations.',
+                    baseCost: 100,
+                    baseProduction: 1,
+                    count: 0,
+                    costMultiplier: 1.14,
+                    unlocked: false,
+                    unlockReq: () => gameState.generators[0].count >= 5
+                },
+                {
+                    id: 'gen3',
+                    name: 'Vacuum Harvester',
+                    description: 'Harvests energy from the vacuum of space.',
+                    baseCost: 1100,
+                    baseProduction: 8,
+                    count: 0,
+                    costMultiplier: 1.13,
+                    unlocked: false,
+                    unlockReq: () => gameState.generators[1].count >= 5
+                },
+                {
+                    id: 'gen4',
+                    name: 'Gravitational Condenser',
+                    description: 'Condenses gravitational waves into pure energy.',
+                    baseCost: 12000,
+                    baseProduction: 47,
+                    count: 0,
+                    costMultiplier: 1.12,
+                    unlocked: false,
+                    unlockReq: () => gameState.generators[2].count >= 5
+                },
+                {
+                    id: 'gen5',
+                    name: 'Stellar Fusion Reactor',
+                    description: 'Mimics the power of a star.',
+                    baseCost: 130000,
+                    baseProduction: 260,
+                    count: 0,
+                    costMultiplier: 1.11,
+                    unlocked: false,
+                    unlockReq: () => gameState.generators[3].count >= 5
+                },
+                {
+                    id: 'gen6',
+                    name: 'Black Hole Tapper',
+                    description: 'Taps into the rotational energy of black holes.',
+                    baseCost: 1400000,
+                    baseProduction: 1400,
+                    count: 0,
+                    costMultiplier: 1.10,
+                    unlocked: false,
+                    unlockReq: () => gameState.generators[4].count >= 5
+                },
+                {
+                    id: 'gen7',
+                    name: 'Dark Energy Collector',
+                    description: 'Collects the mysterious energy accelerating the universe\'s expansion.',
+                    baseCost: 20000000,
+                    baseProduction: 7800,
+                    count: 0,
+                    costMultiplier: 1.09,
+                    unlocked: false,
+                    unlockReq: () => gameState.generators[5].count >= 5
+                },
+                {
+                    id: 'gen8',
+                    name: 'Cosmic String Vibrator',
+                    description: 'Harvests vibrations from cosmic strings.',
+                    baseCost: 330000000,
+                    baseProduction: 44000,
+                    count: 0,
+                    costMultiplier: 1.08,
+                    unlocked: false,
+                    unlockReq: () => gameState.generators[6].count >= 5
+                }
+            ];
+
+            // Generate upgrades
+            gameState.upgrades = [
+                {
+                    id: 'click1',
+                    name: 'Better Clicking',
+                    description: 'Improve your click efficiency.',
+                    effect: 'Doubles energy per click.',
+                    cost: 50,
+                    purchased: false,
+                    unlocked: true,
+                    type: 'click',
+                    onPurchase: () => {
+                        gameState.clickMultiplier *= 2;
+                        updateEnergyPerClick();
+                    }
+                },
+                {
+                    id: 'click2',
+                    name: 'Energy Condenser',
+                    description: 'Condense more energy with each click.',
+                    effect: 'Triples energy per click.',
+                    cost: 500,
+                    purchased: false,
+                    unlocked: false,
+                    type: 'click',
+                    unlockReq: () => findUpgradeById('click1').purchased,
+                    onPurchase: () => {
+                        gameState.clickMultiplier *= 3;
+                        updateEnergyPerClick();
+                    }
+                },
+                {
+                    id: 'click3',
+                    name: 'Quantum Clicking',
+                    description: 'Your clicks exist in multiple states simultaneously.',
+                    effect: 'Clicking produces 5x more energy.',
+                    cost: 5000,
+                    purchased: false,
+                    unlocked: false,
+                    type: 'click',
+                    unlockReq: () => findUpgradeById('click2').purchased,
+                    onPurchase: () => {
+                        gameState.clickMultiplier *= 5;
+                        updateEnergyPerClick();
+                    }
+                },
+                {
+                    id: 'gen1upgrade1',
+                    name: 'Enhanced Photon Collectors',
+                    description: 'Improve the efficiency of Photon Collectors.',
+                    effect: 'Photon Collectors produce 2x more energy.',
+                    cost: 100,
+                    purchased: false,
+                    unlocked: false,
+                    type: 'generator',
+                    targetGen: 'gen1',
+                    multiplier: 2,
+                    unlockReq: () => gameState.generators[0].count >= 10
+                },
+                {
+                    id: 'gen2upgrade1',
+                    name: 'Quantum Stabilizers',
+                    description: 'Stabilize quantum fluctuations for better extraction.',
+                    effect: 'Quantum Extractors produce 2x more energy.',
+                    cost: 1000,
+                    purchased: false,
+                    unlocked: false,
+                    type: 'generator',
+                    targetGen: 'gen2',
+                    multiplier: 2,
+                    unlockReq: () => gameState.generators[1].count >= 10
+                },
+                {
+                    id: 'gen3upgrade1',
+                    name: 'Vacuum Amplifiers',
+                    description: 'Amplify the energy harvested from vacuum.',
+                    effect: 'Vacuum Harvesters produce 2x more energy.',
+                    cost: 11000,
+                    purchased: false,
+                    unlocked: false,
+                    type: 'generator',
+                    targetGen: 'gen3',
+                    multiplier: 2,
+                    unlockReq: () => gameState.generators[2].count >= 10
+                },
+                {
+                    id: 'global1',
+                    name: 'Energy Synergy',
+                    description: 'All systems work together more efficiently.',
+                    effect: 'All generators produce 50% more energy.',
+                    cost: 5000,
+                    purchased: false,
+                    unlocked: false,
+                    type: 'global',
+                    unlockReq: () => gameState.generators[2].count >= 1,
+                    onPurchase: () => {
+                        gameState.productionMultiplier *= 1.5;
+                    }
+                },
+                {
+                    id: 'global2',
+                    name: 'Universal Harmonics',
+                    description: 'Harmonize all energy systems with the universe.',
+                    effect: 'All generators produce 2x more energy.',
+                    cost: 100000,
+                    purchased: false,
+                    unlocked: false,
+                    type: 'global',
+                    unlockReq: () => findUpgradeById('global1').purchased,
+                    onPurchase: () => {
+                        gameState.productionMultiplier *= 2;
+                    }
+                },
+                {
+                    id: 'click4',
+                    name: 'Cosmic Touch',
+                    description: 'Your touch resonates with the cosmic fabric.',
+                    effect: 'Clicking produces 10x more energy.',
+                    cost: 1000000,
+                    purchased: false,
+                    unlocked: false,
+                    type: 'click',
+                    unlockReq: () => findUpgradeById('click3').purchased && gameState.energy >= 500000,
+                    onPurchase: () => {
+                        gameState.clickMultiplier *= 10;
+                        updateEnergyPerClick();
+                    }
+                }
+            ];
+
+            // Generate prestige upgrades
+            gameState.prestigeUpgrades = [
+                {
+                    id: 'prestige1',
+                    name: 'Cosmic Efficiency',
+                    description: 'Harness cosmic essence for better energy production.',
+                    effect: 'Increase energy production by 25% for each prestige level.',
+                    cost: 1,
+                    purchased: false,
+                    unlocked: true,
+                    type: 'production',
+                    onPurchase: () => {
+                        recalculatePrestigeMultiplier();
+                    }
+                },
+                {
+                    id: 'prestige2',
+                    name: 'Essence Infusion',
+                    description: 'Infuse your clicks with cosmic essence.',
+                    effect: 'Increase click value by 50% for each prestige level.',
+                    cost: 2,
+                    purchased: false,
+                    unlocked: true,
+                    type: 'click',
+                    onPurchase: () => {
+                        updateEnergyPerClick();
+                    }
+                },
+                {
+                    id: 'prestige3',
+                    name: 'Dimensional Insight',
+                    description: 'Gain insights into higher dimensions.',
+                    effect: 'Start with 1 of each generator after prestige.',
+                    cost: 5,
+                    purchased: false,
+                    unlocked: true,
+                    type: 'quality'
+                },
+                {
+                    id: 'prestige4',
+                    name: 'Cosmic Memory',
+                    description: 'Retain knowledge from previous cycles.',
+                    effect: 'Upgrades stay unlocked after prestige.',
+                    cost: 8,
+                    purchased: false,
+                    unlocked: true,
+                    type: 'quality'
+                },
+                {
+                    id: 'prestige5',
+                    name: 'Stardust Conversion',
+                    description: 'Convert excess cosmic essence into stardust.',
+                    effect: 'Gain stardust based on your cosmic essence.',
+                    cost: 15,
+                    purchased: false,
+                    unlocked: false,
+                    type: 'stardust',
+                    unlockReq: () => gameState.unlockedFeatures.stardust
+                }
+            ];
+
+            // Generate time upgrades
+            gameState.timeUpgrades = [
+                {
+                    id: 'time1',
+                    name: 'Extended Warp',
+                    description: 'Extend the duration of your time warps.',
+                    effect: 'Time warps last 15 seconds longer.',
+                    cost: 10,
+                    purchased: false,
+                    unlocked: true,
+                    type: 'warp',
+                    onPurchase: () => {
+                        updateTimeWarpUI();
+                    }
+                },
+                {
+                    id: 'time2',
+                    name: 'Temporal Efficiency',
+                    description: 'Make better use of warped time.',
+                    effect: 'Production is doubled during time warps.',
+                    cost: 25,
+                    purchased: false,
+                    unlocked: true,
+                    type: 'warp'
+                },
+                {
+                    id: 'time3',
+                    name: 'Chronoflow',
+                    description: 'Improve the natural flow of time.',
+                    effect: 'All production is increased by 25%.',
+                    cost: 50,
+                    purchased: false,
+                    unlocked: true,
+                    type: 'production',
+                    onPurchase: () => {
+                        gameState.productionMultiplier *= 1.25;
+                    }
+                },
+                {
+                    id: 'time4',
+                    name: 'Stardust Efficiency',
+                    description: 'Extract more stardust from the cosmic flow.',
+                    effect: 'Stardust gain is increased by 50%.',
+                    cost: 100,
+                    purchased: false,
+                    unlocked: true,
+                    type: 'stardust',
+                    onPurchase: () => {
+                        gameState.stardustMultiplier *= 1.5;
+                    }
+                }
+            ];
+
+            // Generate challenges
+            gameState.challenges = [
+                {
+                    id: 'challenge1',
+                    name: 'Entropy',
+                    description: 'Energy slowly leaks away over time.',
+                    effect: 'Lose 1% of your energy per second.',
+                    reward: 'Generators produce 25% more energy permanently.',
+                    completed: false,
+                    unlocked: true,
+                    target: 1e6, // 1 million energy
+                    onComplete: () => {
+                        gameState.productionMultiplier *= 1.25;
+                    }
+                },
+                {
+                    id: 'challenge2',
+                    name: 'Inefficiency',
+                    description: 'All generators are 90% less efficient.',
+                    effect: 'Generators produce only 10% of normal energy.',
+                    reward: 'Click value is doubled permanently.',
+                    completed: false,
+                    unlocked: true,
+                    target: 1e5, // 100,000 energy
+                    onComplete: () => {
+                        gameState.clickMultiplier *= 2;
+                        updateEnergyPerClick();
+                    }
+                },
+                {
+                    id: 'challenge3',
+                    name: 'Quantum Decay',
+                    description: 'Upgrades randomly disable themselves.',
+                    effect: 'Every 30 seconds, a random upgrade stops working.',
+                    reward: 'Gain 50% more prestige points.',
+                    completed: false,
+                    unlocked: false,
+                    unlockReq: () => gameState.challenges[0].completed || gameState.challenges[1].completed,
+                    target: 5e6, // 5 million energy
+                    onComplete: () => {
+                        // This is implemented in the calculatePrestigeGain function
+                    }
+                }
+            ];
+
+            // Generate achievements
+            gameState.achievements = [
+                {
+                    id: 'achieve1',
+                    name: 'First Click',
+                    description: 'Click for the first time.',
+                    icon: '👆',
+                    unlocked: false,
+                    hidden: false,
+                    check: () => gameState.totalClicks >= 1
+                },
+                {
+                    id: 'achieve2',
+                    name: 'Click Enthusiast',
+                    description: 'Click 100 times.',
+                    icon: '👆👆',
+                    unlocked: false,
+                    hidden: false,
+                    check: () => gameState.totalClicks >= 100
+                },
+                {
+                    id: 'achieve3',
+                    name: 'Energy Novice',
+                    description: 'Reach 1,000 energy.',
+                    icon: '⚡',
+                    unlocked: false,
+                    hidden: false,
+                    check: () => gameState.energy >= 1000
+                },
+                {
+                    id: 'achieve4',
+                    name: 'Energy Master',
+                    description: 'Reach 1,000,000 energy.',
+                    icon: '⚡⚡',
+                    unlocked: false,
+                    hidden: false,
+                    check: () => gameState.energy >= 1000000
+                },
+                {
+                    id: 'achieve5',
+                    name: 'Cosmic Rebirth',
+                    description: 'Perform your first prestige.',
+                    icon: '🌌',
+                    unlocked: false,
+                    hidden: false,
+                    check: () => gameState.totalResets >= 1
+                },
+                {
+                    id: 'achieve6',
+                    name: 'Cosmic Cycle',
+                    description: 'Prestige 5 times.',
+                    icon: '🌌🌌',
+                    unlocked: false,
+                    hidden: false,
+                    check: () => gameState.totalResets >= 5
+                },
+                {
+                    id: 'achieve7',
+                    name: 'Collector',
+                    description: 'Have at least 10 of each generator.',
+                    icon: '🧰',
+                    unlocked: false,
+                    hidden: false,
+                    check: () => gameState.generators.every(gen => gen.count >= 10)
+                },
+                {
+                    id: 'achieve8',
+                    name: 'Challenger',
+                    description: 'Complete your first challenge.',
+                    icon: '🏆',
+                    unlocked: false,
+                    hidden: true,
+                    check: () => gameState.challenges.some(ch => ch.completed)
+                },
+                {
+                    id: 'achieve9',
+                    name: 'Stardust Pioneer',
+                    description: 'Collect your first stardust.',
+                    icon: '✨',
+                    unlocked: false,
+                    hidden: true,
+                    check: () => gameState.stardust > 0
+                },
+                {
+                    id: 'achieve10',
+                    name: 'Time Bender',
+                    description: 'Use time warp for the first time.',
+                    icon: '⏱️',
+                    unlocked: false,
+                    hidden: true,
+                    check: () => gameState.statistics.timeWarps > 0
+                }
+            ];
+            
+            // Story sequences
+            gameState.storySequences = [
+                {
+                    id: 0,
+                    title: 'The Beginning',
+                    content: `You find yourself in the vast emptiness of space, a single point of consciousness in the infinite void. As you reach out, you feel the subtle vibrations of energy all around you. With a simple interaction, you can gather this energy and begin to shape it. This is the start of your cosmic journey - from a single click, an entire universe might one day emerge.`
+                },
+                {
+                    id: 1,
+                    title: 'Cosmic Awakening',
+                    content: `The immense energy you've gathered begins to resonate at a frequency you've never experienced before. Suddenly, your consciousness expands beyond your current reality. You realize there are higher planes of existence, and through a process of cosmic ascension, you can reset your current progress but gain a powerful essence that will make future cycles more efficient. This cosmic rebirth is the key to exponential growth.`
+                },
+                {
+                    id: 2, 
+                    title: 'The First Cycle',
+                    content: `As you perform your first cosmic ascension, you feel your consciousness dissolve and then reform, stronger and more attuned to the universe. The cosmic essence you've gained persists through this rebirth, imbuing you with greater power. Though you start again from humble beginnings, your newfound knowledge and cosmic essence will allow you to progress much faster this time. Each cycle brings new insights and potential.`
+                },
+                {
+                    id: 3,
+                    title: 'Universal Challenges',
+                    content: `The universe itself seems to be testing you. You sense the emergence of challenging conditions - pockets of reality where the normal rules are altered to create obstacles. These cosmic challenges will push the limits of your abilities, but overcoming them will grant permanent enhancements to your powers. Do you have what it takes to conquer the universe's tests?`
+                },
+                {
+                    id: 4,
+                    title: 'Stardust Discovery',
+                    content: `During your cosmic cycles, you notice glittering motes of extremely dense energy - stardust. This rare substance seems to be a byproduct of cosmic ascension, the residue of collapsed universes. As you collect more cosmic essence, you can convert some of it into this powerful material. Stardust holds the key to even more powerful upgrades and perhaps control over the very fabric of reality itself.`
+                },
+                {
+                    id: 5,
+                    title: 'The Stellar Forge',
+                    content: `With sufficient stardust collected, you learn to create a stellar forge - a crucible of creation that uses the remains of dead stars to craft tools of immense power. The stardust, when properly focused through the forge, can be transformed into artifacts that permanently alter your connection to the universe. These stellar artifacts will persist through all future cycles, gradually making you a true cosmic entity.`
+                },
+                {
+                    id: 6,
+                    title: 'Temporal Mastery',
+                    content: `The combination of cosmic essence and stardust reveals something unexpected - faint patterns in the flow of time itself. You realize that with enough concentration and stardust, you can temporarily manipulate the temporal current, accelerating production or even rewinding small mistakes. This mastery over time opens up entirely new avenues of cosmic manipulation. The universe bends to your will in ways you never imagined possible.`
+                },
+                {
+                    id: 7,
+                    title: 'Universal Harmony',
+                    content: `As your power grows to unimaginable levels, you begin to sense a deeper truth about reality. The universe is not just a collection of matter and energy but a vast, interconnected consciousness. Your journey of energy collection and cosmic ascension is actually a process of aligning yourself with the fundamental harmony of existence. With each cycle, you are becoming one with the universe itself, approaching a state of cosmic enlightenment.`
+                }
+            ];
+        }
+
+        // Trigger story based on progress
+        function triggerStory(id) {
+            if (gameState.storyRead.includes(id)) return;
+            
+            const story = gameState.storySequences.find(s => s.id === id);
+            if (!story) return;
+            
+            elements.storyTitle.textContent = story.title;
+            elements.storyContent.textContent = story.content;
+            elements.storyModal.style.display = 'flex';
+            
+            gameState.storyRead.push(id);
+        }
+
+        // Update energy per click
+        function updateEnergyPerClick() {
+            let baseClick = GAME_CONFIG.baseClickValue;
+            
+            // Apply click multiplier
+            baseClick *= gameState.clickMultiplier;
+            
+            // Apply prestige bonus for click if the upgrade is purchased
+            if (findUpgradeById('prestige2', 'prestigeUpgrades')?.purchased) {
+                baseClick *= (1 + 0.5 * gameState.totalResets);
+            }
+            
+            // Apply challenge reward if completed
+            if (gameState.challenges[1]?.completed) {
+                baseClick *= 2;
+            }
+            
+            // Set the value
+            gameState.energyPerClick = baseClick;
+        }
+
+        // Recalculate prestige multiplier
+        function recalculatePrestigeMultiplier() {
+            let multiplier = 1;
+            
+            // Apply prestige bonus if the upgrade is purchased
+            if (findUpgradeById('prestige1', 'prestigeUpgrades')?.purchased) {
+                multiplier += 0.25 * gameState.totalResets;
+            }
+            
+            // Set the value
+            gameState.prestigeMultiplier = multiplier;
+        }
+
+        // Calculate production for a generator
+        function calculateGeneratorProduction(generator) {
+            let production = generator.baseProduction * generator.count;
+            
+            // Apply generator-specific upgrades
+            for (const upgrade of gameState.upgrades) {
+                if (upgrade.purchased && upgrade.type === 'generator' && upgrade.targetGen === generator.id) {
+                    production *= upgrade.multiplier;
+                }
+            }
+            
+            // Apply global multipliers
+            production *= gameState.productionMultiplier;
+            
+            // Apply prestige multiplier
+            production *= gameState.prestigeMultiplier;
+            
+            // Apply challenge effect for generators
+            if (gameState.activeChallenge === 'challenge2') {
+                production *= 0.1;
+            }
+            
+            // Apply time warp effect if active
+            if (gameState.timeWarpActive) {
+                let timeMultiplier = 2;
+                if (findUpgradeById('time2', 'timeUpgrades')?.purchased) {
+                    timeMultiplier = 4;
+                }
+                production *= timeMultiplier;
+            }
+            
+            return production;
+        }
+
+        // Calculate total production
+        function calculateTotalProduction() {
+            let total = 0;
+            
+            for (const generator of gameState.generators) {
+                if (generator.count > 0) {
+                    total += calculateGeneratorProduction(generator);
+                }
+            }
+            
+            gameState.energyPerSecond = total;
+            return total;
+        }
+
+        // Update production
+        function updateProduction(deltaTime) {
+            const production = calculateTotalProduction() * (deltaTime / 1000);
+            
+            // Apply entropy challenge effect
+            if (gameState.activeChallenge === 'challenge1') {
+                const entropy = gameState.energy * 0.01 * (deltaTime / 1000);
+                gameState.energy = Math.max(0, gameState.energy - entropy);
+            }
+            
+            // Apply quantum decay challenge effect
+            if (gameState.activeChallenge === 'challenge3') {
+                gameState.challengeProgress.decayTimer = (gameState.challengeProgress.decayTimer || 0) + deltaTime;
+                
+                if (gameState.challengeProgress.decayTimer >= 30000) { // 30 seconds
+                    gameState.challengeProgress.decayTimer = 0;
+                    
+                    // Find all purchased non-prestige upgrades
+                    const activeUpgrades = gameState.upgrades.filter(u => u.purchased && !u.disabled);
+                    
+                    if (activeUpgrades.length > 0) {
+                        // Randomly disable one
+                        const randomUpgrade = activeUpgrades[Math.floor(Math.random() * activeUpgrades.length)];
+                        randomUpgrade.disabled = true;
+                        
+                        // Disable for 60 seconds
+                        setTimeout(() => {
+                            randomUpgrade.disabled = false;
+                            showNotification(`${randomUpgrade.name} is working again!`);
+                        }, 60000);
+                        
+                        showNotification(`${randomUpgrade.name} has temporarily stopped working!`);
+                    }
+                }
+            }
+            
+            gameState.energy += production;
+            gameState.totalEnergy += production;
+            
+            if (gameState.energy > gameState.statistics.highestEnergy) {
+                gameState.statistics.highestEnergy = gameState.energy;
+            }
+        }
+
+        // Check challenges
+        function checkChallenges() {
+            if (!gameState.activeChallenge) return;
+            
+            const challenge = gameState.challenges.find(c => c.id === gameState.activeChallenge);
+            
+            if (challenge && !challenge.completed && gameState.energy >= challenge.target) {
+                challenge.completed = true;
+                gameState.statistics.challengesCompleted++;
+                
+                // Apply reward
+                if (typeof challenge.onComplete === 'function') {
+                    challenge.onComplete();
+                }
+                
+                // Exit challenge
+                gameState.activeChallenge = null;
+                
+                showNotification(`Challenge completed: ${challenge.name}!`);
+                startPrestige(true);
+            }
+        }
+
+        // Check achievements
+        function checkAchievements() {
+            let newAchievements = 0;
+            
+            for (const achievement of gameState.achievements) {
+                if (!achievement.unlocked && achievement.check()) {
+                    achievement.unlocked = true;
+                    newAchievements++;
+                    
+                    if (gameState.settings.notifications) {
+                        showNotification(`Achievement unlocked: ${achievement.name}!`);
+                    }
+                }
+            }
+            
+            return newAchievements;
+        }
+
+        // Handle click on clicker
+        function handleClick(event) {
+            gameState.totalClicks++;
+            
+            // Calculate click value
+            const clickValue = gameState.energyPerClick;
+            
+            // Add to energy
+            gameState.energy += clickValue;
+            gameState.totalEnergy += clickValue;
+            
+            // Create particle effect
+            const rect = elements.clicker.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            createClickParticle(event.clientX, event.clientY, clickValue);
+            
+            // Play click animation
+            elements.clicker.classList.add('active');
+            setTimeout(() => {
+                elements.clicker.classList.remove('active');
+            }, 100);
+            
+            updateUI();
+        }
+
+        // Get generator cost
+        function getGeneratorCost(generator) {
+            return Math.floor(generator.baseCost * Math.pow(generator.costMultiplier, generator.count));
+        }
+
+        // Buy generator
+        function buyGenerator(generatorId) {
+            const generator = gameState.generators.find(g => g.id === generatorId);
+            
+            if (!generator) return false;
+            
+            const cost = getGeneratorCost(generator);
+            
+            if (gameState.energy >= cost) {
+                gameState.energy -= cost;
+                generator.count++;
+                gameState.statistics.generatorsBought++;
+                
+                updateUI();
+                renderGenerators();
+                return true;
+            }
+            
+            return false;
+        }
+
+        // Buy upgrade
+        function buyUpgrade(upgradeId, list = 'upgrades') {
+            const upgrade = findUpgradeById(upgradeId, list);
+            
+            if (!upgrade || upgrade.purchased) return false;
+            
+            const currency = list === 'upgrades' ? 'energy' : 
+                            list === 'prestigeUpgrades' ? 'prestigePoints' : 
+                            list === 'timeUpgrades' ? 'stardust' : 'energy';
+            
+            if (gameState[currency] >= upgrade.cost) {
+                gameState[currency] -= upgrade.cost;
+                upgrade.purchased = true;
+                gameState.statistics.upgradesPurchased++;
+                
+                // Apply immediate effects
+                if (typeof upgrade.onPurchase === 'function') {
+                    upgrade.onPurchase();
+                }
+                
+                // For generator upgrades, recalculate production
+                if (upgrade.type === 'generator') {
+                    calculateTotalProduction();
+                }
+                
+                showNotification(`Purchased: ${upgrade.name}`);
+                updateUI();
+                
+                // Re-render the appropriate list
+                if (list === 'upgrades') {
+                    renderUpgrades();
+                    renderGenerators(); // Update production display
+                } else if (list === 'prestigeUpgrades') {
+                    renderPrestigeUpgrades();
+                    renderGenerators(); // Update production display
+                } else if (list === 'timeUpgrades') {
+                    renderTimeUpgrades();
+                }
+                
+                return true;
+            }
+            
+            return false;
+        }
+
+        // Start prestige
+        function startPrestige(skipConfirm = false) {
+            const prestigeGain = calculatePrestigeGain();
+            
+            if (prestigeGain <= 0 && !skipConfirm) return;
+            
+            if (!skipConfirm && !confirm(`Are you sure you want to reset your progress for ${prestigeGain} Cosmic Essence?`)) {
+                return;
+            }
+            
+            // Apply challenge reward for prestige
+            let actualGain = prestigeGain;
+            if (gameState.challenges[2]?.completed) {
+                actualGain = Math.floor(actualGain * 1.5);
+            }
+            
+            // Add prestige points
+            gameState.prestigePoints += actualGain;
+            
+            // Add stardust if the upgrade is purchased
+            if (findUpgradeById('prestige5', 'prestigeUpgrades')?.purchased) {
+                const stardustGain = calculateStardustGain();
+                gameState.stardust += Math.floor(stardustGain * gameState.stardustMultiplier);
+                gameState.statistics.totalStardust += stardustGain;
+            }
+            
+            // Update statistics
+            gameState.totalResets++;
+            gameState.statistics.totalPrestiges++;
+            
+            // Keep track of highest energy
+            gameState.statistics.highestEnergy = Math.max(gameState.statistics.highestEnergy, gameState.energy);
+            
+            // Reset regular upgrades (unless cosmic memory is purchased)
+            if (!findUpgradeById('prestige4', 'prestigeUpgrades')?.purchased) {
+                for (const upgrade of gameState.upgrades) {
+                    // Keep track of discovered upgrades
+                    if (upgrade.unlocked) {
+                        gameState.discoveredUpgrades.push(upgrade.id);
+                    }
+                    
+                    upgrade.purchased = false;
+                    upgrade.unlocked = false;
+                    upgrade.disabled = false;
+                }
+                
+                // Restore previously discovered upgrades
+                for (const id of gameState.discoveredUpgrades) {
+                    const upgrade = findUpgradeById(id);
+                    if (upgrade) {
+                        upgrade.unlocked = true;
+                    }
+                }
+            }
+            
+            // Reset basic upgrades that should always reset
+            gameState.energy = 0;
+            gameState.energyPerSecond = 0;
+            gameState.clickMultiplier = 1;
+            gameState.productionMultiplier = 1;
+            
+            // Reset generators (but keep first one of each if dimensional insight is purchased)
+            for (const generator of gameState.generators) {
+                if (findUpgradeById('prestige3', 'prestigeUpgrades')?.purchased) {
+                    generator.count = 1;
+                } else {
+                    generator.count = 0;
+                }
+                
+                generator.unlocked = generator.id === 'gen1'; // Only first generator starts unlocked
+            }
+            
+            // Recalculate prestige multiplier
+            recalculatePrestigeMultiplier();
+            
+            // Update energy per click
+            updateEnergyPerClick();
+            
+            showNotification(`Reset complete! Gained ${actualGain} Cosmic Essence.`);
+            
+            // Update UI and render all sections
+            updateUI();
+            renderGenerators();
+            renderUpgrades();
+            
+            // Check for new features to unlock
+            checkUnlocks();
+            
+            // Trigger the story for first reset
+            if (gameState.totalResets === 1) {
+                triggerStory(2);
+            }
+        }
+
+        // Enter challenge
+        function enterChallenge(challengeId) {
+            const challenge = gameState.challenges.find(c => c.id === challengeId);
+            
+            if (!challenge || challenge.completed) return;
+            
+            if (!confirm(`Are you sure you want to enter the "${challenge.name}" challenge? You'll have to start from scratch with special restrictions.`)) {
+                return;
+            }
+            
+            gameState.activeChallenge = challengeId;
+            gameState.challengeProgress = {};
+            
+            // Reset progress like a prestige
+            startPrestige(true);
+            
+            showNotification(`Challenge started: ${challenge.name}`);
+            renderChallenges();
+        }
+
+        // Activate time warp
+        function activateTimeWarp() {
+            const baseDuration = 30;
+            const durationBonus = findUpgradeById('time1', 'timeUpgrades')?.purchased ? 15 : 0;
+            const cost = 10 * gameState.timeWarpLevel;
+            
+            if (gameState.stardust < cost) {
+                showNotification("Not enough stardust!");
+                return;
+            }
+            
+            gameState.stardust -= cost;
+            gameState.statistics.timeWarps++;
+            gameState.timeWarpLevel++;
+            
+            // Set time warp active
+            gameState.timeWarpActive = true;
+            gameState.timeWarpEnd = Date.now() + ((baseDuration + durationBonus) * 1000);
+            
+            showNotification(`Time Warp active for ${baseDuration + durationBonus} seconds!`);
+            updateUI();
+            updateTimeWarpUI();
+            
+            // Check achievement
+            checkAchievements();
+        }
+
+        // Update time warp UI
+        function updateTimeWarpUI() {
+            const baseDuration = 30;
+            const durationBonus = findUpgradeById('time1', 'timeUpgrades')?.purchased ? 15 : 0;
+            const cost = 10 * gameState.timeWarpLevel;
+            
+            elements.timeWarpDuration.textContent = baseDuration + durationBonus;
+            elements.timeWarpCost.textContent = cost;
+            
+            if (gameState.timeWarpActive) {
+                const timeLeft = Math.max(0, Math.floor((gameState.timeWarpEnd - Date.now()) / 1000));
+                elements.timeWarpButton.textContent = `ACTIVE (${timeLeft}s)`;
+                elements.timeWarpButton.disabled = true;
+            } else {
+                elements.timeWarpButton.textContent = 'WARP TIME';
+                elements.timeWarpButton.disabled = gameState.stardust < cost;
+            }
+        }
+
+        // Render generators list
+        function renderGenerators() {
+            elements.generatorsList.innerHTML = '';
+            
+            for (const generator of gameState.generators) {
+                // Check if generator should be unlocked based on requirements
+                if (typeof generator.unlockReq === 'function') {
+                    generator.unlocked = generator.unlockReq();
+                }
+                
+                if (!generator.unlocked) continue;
+                
+                const cost = getGeneratorCost(generator);
+                const production = calculateGeneratorProduction(generator);
+                const canAfford = gameState.energy >= cost;
+                
+                const div = document.createElement('div');
+                div.className = `generator-item ${canAfford ? '' : 'unavailable'}`;
+                div.innerHTML = `
+                    <div class="generator-info">
+                        <div class="generator-header">
+                            <div class="generator-name">${generator.name}</div>
+                            <div class="generator-count">${generator.count}</div>
+                        </div>
+                        <div class="generator-description">${generator.description}</div>
+                        <div class="generator-effect">Produces ${formatNumber(production)} energy/sec</div>
+                    </div>
+                    <div class="generator-cost">${formatNumber(cost)}</div>
+                `;
+                
+                div.addEventListener('click', () => {
+                    buyGenerator(generator.id);
+                });
+                
+                elements.generatorsList.appendChild(div);
+            }
+        }
+
+        // Render upgrades list
+        function renderUpgrades() {
+            elements.upgradesList.innerHTML = '';
+            
+            for (const upgrade of gameState.upgrades) {
+                // Check if upgrade should be unlocked based on requirements
+                if (typeof upgrade.unlockReq === 'function') {
+                    upgrade.unlocked = upgrade.unlockReq();
+                }
+                
+                if (!upgrade.unlocked) continue;
+                
+                const canAfford = gameState.energy >= upgrade.cost;
+                
+                const div = document.createElement('div');
+                div.className = `upgrade-item ${canAfford ? '' : 'unavailable'} ${upgrade.purchased ? 'purchased' : ''}`;
+                
+                // Show disabled status for challenge 3
+                const disabledText = upgrade.disabled ? '<span style="color: #ff5252;"> (Disabled)</span>' : '';
+                
+                div.innerHTML = `
+                    <div class="upgrade-header">
+                        <div class="upgrade-title">${upgrade.name}${disabledText}</div>
+                        <div class="upgrade-cost">${formatNumber(upgrade.cost)}</div>
+                    </div>
+                    <div class="upgrade-description">${upgrade.description}</div>
+                    <div class="upgrade-effect">${upgrade.effect}</div>
+                `;
+                
+                if (!upgrade.purchased) {
+                    div.addEventListener('click', () => {
+                        buyUpgrade(upgrade.id);
+                    });
+                    
+                    // Add progress bar for expensive upgrades
+                    if (upgrade.cost > gameState.energy * 1.5) {
+                        const progress = Math.min(100, (gameState.energy / upgrade.cost) * 100);
+                        const progressBar = document.createElement('div');
+                        progressBar.className = 'upgrade-progress';
+                        progressBar.style.width = `${progress}%`;
+                        div.appendChild(progressBar);
+                    }
+                }
+                
+                elements.upgradesList.appendChild(div);
+            }
+        }
+
+        // Render prestige upgrades list
+        function renderPrestigeUpgrades() {
+            elements.prestigeUpgradesList.innerHTML = '';
+            
+            for (const upgrade of gameState.prestigeUpgrades) {
+                // Check if upgrade should be unlocked based on requirements
+                if (typeof upgrade.unlockReq === 'function') {
+                    upgrade.unlocked = upgrade.unlockReq();
+                }
+                
+                if (!upgrade.unlocked) continue;
+                
+                const canAfford = gameState.prestigePoints >= upgrade.cost;
+                
+                const div = document.createElement('div');
+                div.className = `upgrade-item ${canAfford ? '' : 'unavailable'} ${upgrade.purchased ? 'purchased' : ''}`;
+                div.innerHTML = `
+                    <div class="upgrade-header">
+                        <div class="upgrade-title">${upgrade.name}</div>
+                        <div class="upgrade-cost">${upgrade.cost} Essence</div>
+                    </div>
+                    <div class="upgrade-description">${upgrade.description}</div>
+                    <div class="upgrade-effect">${upgrade.effect}</div>
+                `;
+                
+                if (!upgrade.purchased) {
+                    div.addEventListener('click', () => {
+                        buyUpgrade(upgrade.id, 'prestigeUpgrades');
+                    });
+                }
+                
+                elements.prestigeUpgradesList.appendChild(div);
+            }
+        }
+
+        // Render time upgrades list
+        function renderTimeUpgrades() {
+            elements.timeUpgradesList.innerHTML = '';
+            
+            for (const upgrade of gameState.timeUpgrades) {
+                // Check if upgrade should be unlocked based on requirements
+                if (typeof upgrade.unlockReq === 'function') {
+                    upgrade.unlocked = upgrade.unlockReq();
+                }
+                
+                if (!upgrade.unlocked) continue;
+                
+                const canAfford = gameState.stardust >= upgrade.cost;
+                
+                const div = document.createElement('div');
+                div.className = `upgrade-item ${canAfford ? '' : 'unavailable'} ${upgrade.purchased ? 'purchased' : ''}`;
+                div.innerHTML = `
+                    <div class="upgrade-header">
+                        <div class="upgrade-title">${upgrade.name}</div>
+                        <div class="upgrade-cost">${upgrade.cost} Stardust</div>
+                    </div>
+                    <div class="upgrade-description">${upgrade.description}</div>
+                    <div class="upgrade-effect">${upgrade.effect}</div>
+                `;
+                
+                if (!upgrade.purchased) {
+                    div.addEventListener('click', () => {
+                        buyUpgrade(upgrade.id, 'timeUpgrades');
+                    });
+                }
+                
+                elements.timeUpgradesList.appendChild(div);
+            }
+        }
+
+        // Render challenges list
+        function renderChallenges() {
+            elements.challengesList.innerHTML = '';
+            
+            for (const challenge of gameState.challenges) {
+                // Check if challenge should be unlocked based on requirements
+                if (typeof challenge.unlockReq === 'function') {
+                    challenge.unlocked = challenge.unlockReq();
+                }
+                
+                if (!challenge.unlocked) continue;
+                
+                const isActive = gameState.activeChallenge === challenge.id;
+                
+                const div = document.createElement('div');
+                div.className = `challenge-card ${isActive ? 'active' : ''}`;
+                div.innerHTML = `
+                    <div class="challenge-header">
+                        <div class="challenge-name">${challenge.name}</div>
+                        <div class="challenge-status">${challenge.completed ? 'Completed' : isActive ? 'Active' : 'Not Started'}</div>
+                    </div>
+                    <div class="challenge-description">${challenge.description}</div>
+                    <div class="challenge-effect">Effect: ${challenge.effect}</div>
+                    <div class="challenge-reward">Reward: ${challenge.reward}</div>
+                `;
+                
+                if (!challenge.completed && !isActive) {
+                    div.addEventListener('click', () => {
+                        enterChallenge(challenge.id);
+                    });
+                }
+                
+                elements.challengesList.appendChild(div);
+            }
+        }
+
+        // Render achievements list
+        function renderAchievements() {
+            elements.achievementsList.innerHTML = '';
+            
+            for (const achievement of gameState.achievements) {
+                const isUnlocked = achievement.unlocked;
+                const isHidden = achievement.hidden && !isUnlocked;
+                
+                const div = document.createElement('div');
+                div.className = `achievement ${isUnlocked ? 'unlocked' : ''} ${isHidden ? 'locked-achievement' : ''}`;
+                
+                if (isHidden) {
+                    div.innerHTML = `
+                        <div class="achievement-icon">?</div>
+                        <div class="achievement-name">???</div>
+                        <div class="achievement-desc">Hidden achievement</div>
+                    `;
+                } else {
+                    div.innerHTML = `
+                        <div class="achievement-icon">${achievement.icon}</div>
+                        <div class="achievement-name">${achievement.name}</div>
+                        <div class="achievement-desc">${achievement.description}</div>
+                    `;
+                }
+                
+                elements.achievementsList.appendChild(div);
+            }
+        }
+
+        // Render detailed statistics
+        function renderDetailedStats() {
+            const stats = gameState.statistics;
+            
+            const statItems = [
+                { name: 'Total Clicks', value: formatNumber(gameState.totalClicks) },
+                { name: 'Total Energy Produced', value: formatNumber(gameState.totalEnergy) },
+                { name: 'Highest Energy', value: formatNumber(stats.highestEnergy) },
+                { name: 'Total Prestige Resets', value: stats.totalPrestiges },
+                { name: 'Energy per Click', value: formatNumber(gameState.energyPerClick) },
+                { name: 'Energy per Second', value: formatNumber(gameState.energyPerSecond) },
+                { name: 'Cosmic Essence Collected', value: formatNumber(gameState.prestigePoints) },
+                { name: 'Stardust Collected', value: formatNumber(stats.totalStardust) },
+                { name: 'Prestige Multiplier', value: `x${gameState.prestigeMultiplier.toFixed(2)}` },
+                { name: 'Upgrades Purchased', value: stats.upgradesPurchased },
+                { name: 'Generators Bought', value: stats.generatorsBought },
+                { name: 'Challenges Completed', value: stats.challengesCompleted },
+                { name: 'Time Warps Used', value: stats.timeWarps },
+                { name: 'Play Time', value: formatTime(gameState.playTime) }
+            ];
+            
+            elements.detailedStats.innerHTML = '';
+            
+            for (const stat of statItems) {
+                const div = document.createElement('div');
+                div.className = 'stat-item';
+                div.innerHTML = `
+                    <div>${stat.name}</div>
+                    <div>${stat.value}</div>
+                `;
+                elements.detailedStats.appendChild(div);
+            }
+        }
+
+        // Save game - returns save data string instead of using localStorage
+        function saveGame() {
+            gameState.lastSave = Date.now();
+            const saveData = JSON.stringify(gameState);
+            return saveData;
+        }
+
+        // Load game - accepts save data directly instead of using localStorage
+        function loadGame(saveData) {
+            try {
+                if (!saveData) {
+                    return false;
+                }
+                
+                const loadedState = JSON.parse(saveData);
+                
+                // Update gameState with loaded values, keeping defaults for any missing properties
+                for (const key in loadedState) {
+                    if (Object.prototype.hasOwnProperty.call(loadedState, key)) {
+                        gameState[key] = loadedState[key];
+                    }
+                }
+                
+                // Make sure we have all the required properties
+                if (!gameState.generators) generateGameData();
+                if (!gameState.settings) gameState.settings = {
+                    particleEffects: true,
+                    animations: true,
+                    notifications: true,
+                    autosave: true
+                };
+                
+                // Recalculate derived values
+                updateEnergyPerClick();
+                recalculatePrestigeMultiplier();
+                calculateTotalProduction();
+                
+                // Apply settings
+                elements.particleEffects.checked = gameState.settings.particleEffects;
+                elements.animations.checked = gameState.settings.animations;
+                elements.notifications.checked = gameState.settings.notifications;
+                elements.autosave.checked = gameState.settings.autosave;
+                
+                // Handle time since last visit
+                const now = Date.now();
+                const offlineTime = now - gameState.lastUpdate;
+                
+                if (offlineTime > 5000) { // More than 5 seconds
+                    const offlineSeconds = offlineTime / 1000;
+                    const offlineProduction = gameState.energyPerSecond * offlineSeconds * 0.5; // 50% efficiency offline
+                    
+                    gameState.energy += offlineProduction;
+                    gameState.totalEnergy += offlineProduction;
+                    gameState.playTime += offlineSeconds;
+                    
+                    showNotification(`Welcome back! You gained ${formatNumber(offlineProduction)} energy while away.`);
+                }
+                
+                gameState.lastUpdate = now;
+                
+                updateUI();
+                return true;
+            } catch (error) {
+                console.error('Error loading save:', error);
+                return false;
+            }
+        }
+
+        // Import save
+        function importSave(saveData) {
+            try {
+                const loadedState = JSON.parse(saveData);
+                
+                // Basic validation
+                if (!loadedState.energy && loadedState.energy !== 0) {
+                    throw new Error('Invalid save data');
+                }
+                
+                // Update gameState with loaded values
+                for (const key in loadedState) {
+                    if (Object.prototype.hasOwnProperty.call(loadedState, key)) {
+                        gameState[key] = loadedState[key];
+                    }
+                }
+                
+                // Recalculate derived values
+                updateEnergyPerClick();
+                recalculatePrestigeMultiplier();
+                calculateTotalProduction();
+                
+                gameState.lastUpdate = Date.now();
+                saveGame();
+                
+                showNotification('Save data imported successfully!');
+                updateUI();
+                
+                // Refresh all UI elements
+                renderGenerators();
+                renderUpgrades();
+                renderPrestigeUpgrades();
+                renderChallenges();
+                renderAchievements();
+                
+                // Check for unlocks
+                checkUnlocks();
+                
+                return true;
+            } catch (error) {
+                console.error('Error importing save:', error);
+                showNotification('Error importing save data. The provided data might be invalid.');
+                return false;
+            }
+        }
+
+        // Reset game
+        function resetGame() {
+            location.reload();
+        }
+
+        // Initialize the game
+        function initGame() {
+            // Always generate fresh game data since we can't use localStorage
+            generateGameData();
+            triggerStory(0);
+            
+            // Set up star background
+            createStars();
+            
+            // Update UI
+            updateUI();
+            renderGenerators();
+            renderUpgrades();
+            renderPrestigeUpgrades();
+            renderChallenges();
+            renderTimeUpgrades();
+            renderAchievements();
+            
+            // Check for unlocks based on loaded state
+            checkUnlocks();
+            
+            // Add event listeners
+            setupEventListeners();
+            
+            // Start game loop
+            requestAnimationFrame(gameLoop);
+            
+            // Hide loading screen
+            elements.loadScreen.style.display = 'none';
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Clicker
+            elements.clicker.addEventListener('click', handleClick);
+            
+            // Tab buttons
+            elements.tabButtons.addEventListener('click', (event) => {
+                if (event.target.classList.contains('tab-button')) {
+                    const tabId = event.target.dataset.tab;
+                    
+                    // Update active tab button
+                    document.querySelectorAll('.tab-button').forEach(button => {
+                        button.classList.remove('active');
+                    });
+                    event.target.classList.add('active');
+                    
+                    // Update active tab content
+                    document.querySelectorAll('.tab-content').forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    document.getElementById(`${tabId}Tab`).classList.add('active');
+                }
+            });
+            
+            // Prestige button
+            elements.prestigeButton.addEventListener('click', () => startPrestige());
+            
+            // Settings button
+            elements.settingsButton.addEventListener('click', () => {
+                elements.settingsModal.style.display = 'flex';
+            });
+            
+            // Stats button
+            elements.statsButton.addEventListener('click', () => {
+                renderDetailedStats();
+                elements.statsModal.style.display = 'flex';
+            });
+            
+            // Achievements button
+            elements.achievementsButton.addEventListener('click', () => {
+                elements.achievementsModal.style.display = 'flex';
+            });
+            
+            // Close modal buttons
+            elements.closeSettingsModal.addEventListener('click', () => {
+                elements.settingsModal.style.display = 'none';
+            });
+            
+            elements.closeStatsModal.addEventListener('click', () => {
+                elements.statsModal.style.display = 'none';
+            });
+            
+            elements.closeAchievementsModal.addEventListener('click', () => {
+                elements.achievementsModal.style.display = 'none';
+            });
+            
+            elements.closeImportModal.addEventListener('click', () => {
+                elements.importModal.style.display = 'none';
+            });
+            
+            elements.closeExportModal.addEventListener('click', () => {
+                elements.exportModal.style.display = 'none';
+            });
+            
+            elements.closeStoryModal.addEventListener('click', () => {
+                elements.storyModal.style.display = 'none';
+            });
+            
+            // Continue story button
+            elements.continueStory.addEventListener('click', () => {
+                elements.storyModal.style.display = 'none';
+            });
+            
+            // Export save - no localStorage but still allows manual copying
+            elements.exportSave.addEventListener('click', () => {
+                const saveData = saveGame();
+                elements.exportCode.value = saveData;
+                elements.exportModal.style.display = 'flex';
+            });
+            
+            // Import save - handles importing without localStorage
+            elements.importSave.addEventListener('click', () => {
+                elements.importModal.style.display = 'flex';
+            });
+            
+            // Reset game
+            elements.resetGame.addEventListener('click', () => {
+                elements.confirmResetModal.style.display = 'flex';
+            });
+            
+            // Cancel reset
+            elements.cancelReset.addEventListener('click', () => {
+                elements.confirmResetModal.style.display = 'none';
+            });
+            
+            // Confirm reset
+            elements.confirmReset.addEventListener('click', () => {
+                resetGame();
+            });
+            
+            // Copy export code
+            elements.copyExport.addEventListener('click', () => {
+                elements.exportCode.select();
+                document.execCommand('copy');
+                showNotification('Save data copied to clipboard!');
+            });
+            
+            // Do import
+            elements.doImport.addEventListener('click', () => {
+                const importData = elements.importCode.value;
+                if (importData.trim()) {
+                    if (importSave(importData)) {
+                        elements.importModal.style.display = 'none';
+                    }
+                } else {
+                    showNotification('Please enter save data to import.');
+                }
+            });
+            
+            // Setting toggles
+            elements.particleEffects.addEventListener('change', (e) => {
+                gameState.settings.particleEffects = e.target.checked;
+                saveGame();
+            });
+            
+            elements.animations.addEventListener('change', (e) => {
+                gameState.settings.animations = e.target.checked;
+                if (e.target.checked) {
+                    createStars();
+                } else {
+                    elements.stars.innerHTML = '';
+                }
+                saveGame();
+            });
+            
+            elements.notifications.addEventListener('change', (e) => {
+                gameState.settings.notifications = e.target.checked;
+                saveGame();
+            });
+            
+            elements.autosave.addEventListener('change', (e) => {
+                gameState.settings.autosave = e.target.checked;
+                saveGame();
+            });
+            
+            // Time warp button
+            elements.timeWarpButton.addEventListener('click', activateTimeWarp);
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    // Close all modals
+                    document.querySelectorAll('.modal').forEach(modal => {
+                        modal.style.display = 'none';
+                    });
+                }
+            });
+        }
+
+        // Main game loop
+        let lastTimestamp = 0;
+        function gameLoop(timestamp) {
+            if (!lastTimestamp) lastTimestamp = timestamp;
+            
+            const deltaTime = timestamp - lastTimestamp;
+            lastTimestamp = timestamp;
+            
+            // Update play time
+            gameState.playTime += deltaTime / 1000;
+            
+            // Update game state
+            updateProduction(deltaTime);
+            
+            // Check for unlocks
+            checkUnlocks();
+            
+            // Check challenges
+            checkChallenges();
+            
+            // Check achievements
+            checkAchievements();
+            
+            // Check time warp
+            if (gameState.timeWarpActive && Date.now() >= gameState.timeWarpEnd) {
+                gameState.timeWarpActive = false;
+                showNotification("Time Warp ended!");
+            }
+            
+            // Update time warp UI if needed
+            if (gameState.unlockedFeatures.timeMechanics) {
+                updateTimeWarpUI();
+            }
+            
+            // We'll skip autosave since we can't use localStorage
+            // Just update the timestamp for reference
+            if (gameState.settings.autosave && Date.now() - gameState.lastSave > GAME_CONFIG.saveInterval) {
+                gameState.lastSave = Date.now();
+            }
+            
+            // Update last timestamp for offline progress
+            gameState.lastUpdate = Date.now();
+            
+            // Update UI every frame
+            updateUI();
+            
+            // Continue the loop
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Loading screen
+        function showLoadingScreen() {
+            const loadSteps = [
+                "Initializing quantum fluctuations...",
+                "Harvesting cosmic energy...",
+                "Calibrating energy collectors...",
+                "Stabilizing dimensional rifts...",
+                "Connecting to the cosmic web...",
+                "Preparing galactic resources...",
+                "Activating stellar engines...",
+                "Charging universal batteries...",
+                "Opening portal to your universe..."
+            ];
+            
+            let currentStep = 0;
+            const totalSteps = loadSteps.length;
+            
+            const loadingInterval = setInterval(() => {
+                if (currentStep >= totalSteps) {
+                    clearInterval(loadingInterval);
+                    setTimeout(initGame, 500);
+                    return;
+                }
+                
+                elements.loadText.textContent = loadSteps[currentStep];
+                elements.loadBar.style.width = `${(currentStep + 1) / totalSteps * 100}%`;
+                
+                currentStep++;
+            }, 300);
+        }
+
+        // Start the game
+        showLoadingScreen();
+    </script>
+</body>
+</html>
